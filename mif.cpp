@@ -1,7 +1,20 @@
-//By Matthieu Chartier
+// IsoMIF is a program to identify molecular interaction field similarities between proteins
+// Copyright (C) 2015 - Matthieu Chartier (under the supervision or Rafael Najmanovich)
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "mif.h"
-// #include "./forcefield_files/getAtomId_FAINT.h"
 
 //-----------------------------START OF MAIN-----------------------------
 /***********************************************************************/
@@ -46,7 +59,7 @@ int main(int argc, char **argv)
     resnumc=pw[pwr].rnc;
     ligFile=pw[pwr].ligF;
 
-    cout <<"pdbF "<<proteinFile<<" cleftF "<<cleftFile<<" gridF "<<gridFile<<endl;
+    // cout <<"pdbF "<<proteinFile<<" cleftF "<<cleftFile<<" gridF "<<gridFile<<endl;
 
     //Get prefix
     if(tag.compare("")==0){
@@ -80,6 +93,7 @@ int main(int argc, char **argv)
 
     tag="";
     for(int gi=0; gi<4; gi++){ ss[gi]=0; }
+    for(int gi=0; gi<4; gi++){ ssm[gi]=0; }
     protein.PROTEIN.clear();
     protein.LIGAND.clear();
     protein.LIGATOMS.clear();
@@ -241,6 +255,8 @@ int readCmdLine(int argc, char **argv){
     outBase = outBase + "/";
   }
 
+  resnumcShort=resnumc.substr(0,resnumc.length()-1);
+
   cout<<endl;
   cout<< "ProteinFile: "<< proteinFile <<endl;
   cout<< "CleftFile: "<< cleftFile <<endl;
@@ -254,6 +270,7 @@ int readCmdLine(int argc, char **argv){
   cout<< "MaxGridDist: "<< maxGridDist <<endl;
   cout<< "AtmPbMaxDist: "<< atmPbMaxDist <<endl;
   cout<< "RESNUMC: "<< resnumc <<endl;
+  cout<< "RESNUMC short: "<< resnumcShort <<endl;
   cout<< "gridLigDist: "<< gridLigDist <<endl;
   gridLigDist=gridLigDist*gridLigDist;
   maxGridDist=maxGridDist*maxGridDist;
@@ -283,6 +300,7 @@ void Protein::readPDB(string filename){
   string line;
   string fields[13];
   string thisresnumc;
+  string thisresnumcShort;
   float x,y,z;
   int atomnb;
   int resnb;
@@ -362,15 +380,18 @@ void Protein::readPDB(string filename){
       if(atomTypes.find(atm.resn+"_"+atm.atomn) == atomTypes.end()){ atm.mif=0; }
       if(fields[5].compare(chain)!=0 && chain.compare("none")!=0){ atm.mif=0; }
       if(line.compare(0,6,"HETATM") == 0){ atm.mif=0; }
-      if((fields[3].compare("A")!=0) && (fields[3].compare("")!=0)){ atm.mif=0; }
+      if((fields[3].compare("A")!=0) && (fields[3].compare("")!=0)){ atm.mif=0; } //Keep only alternate atoms A for the protein
 
       if(resnumc.compare("")!=0){
         stringstream sss;
         sss << atm.resnb;
         thisresnumc = atm.resn + sss.str() + atm.chain + atm.alt;
+        thisresnumcShort = atm.resn + sss.str() + atm.chain;
         stripSpace(thisresnumc);
+
         // cout<< resnumc<< " to "<< thisresnumc <<" "<<fields[2]<< " "<< atof((line.substr(30,8).c_str()))<<" "<< atof((line.substr(38,8).c_str()))<<" "<<atof((line.substr(46,8).c_str()))<<endl;
-        if(resnumc.compare(thisresnumc)==0 && found==string::npos){
+        if(atm.h==0 && (resnumc.compare(thisresnumc)==0 || (resnumcShort.compare(thisresnumcShort)==0 && atm.alt.compare("-")==0))){
+          // cout<<line<<endl;
           LIGAND.push_back(atof((line.substr(30,8).c_str())));
           LIGAND.push_back(atof((line.substr(38,8).c_str())));
           LIGAND.push_back(atof((line.substr(46,8).c_str())));
@@ -1084,6 +1105,8 @@ int Grid::readGetCleft(string filename, vector<atom>& protVec, vector<float>& li
   cout<<"Grid points added: "<<newv<<endl;
 
   int chipped=0;
+  int erase200=0;
+  int keep200=0;
   cout<<"Chipping grid..."<<endl;
   it=GRID.begin();
   while(it!=GRID.end()){
@@ -1101,6 +1124,7 @@ int Grid::readGetCleft(string filename, vector<atom>& protVec, vector<float>& li
 
     if(inGridRes(it->second,2.0)==1){
       it->second.grid[0]=1;
+      // cout<<vrtx200<<" "<<it->second.grid[zip]<<" "<<zip<<" "<<minDist<<" "<<minGridDist<<" "<<maxGridDist;
       vrtx200++;
     }
 
@@ -1116,17 +1140,30 @@ int Grid::readGetCleft(string filename, vector<atom>& protVec, vector<float>& li
     
     if(inGridRes(it->second,0.5)==1){
       it->second.grid[3]=1;
-      vrtx050++;               
+      vrtx050++;
     }
 
-    if(minDist<minGridDist || minDist > maxGridDist || (it->second.grid[zip]!=1 && zip!=-1)){
+    if(minDist<minGridDist || minDist > maxGridDist || (it->second.grid[zip]==0 && zip!=-1)){
+      // if(inGridRes(it->second,2.0)==1){
+      //   cout<<"erase"<<endl;
+      //   erase200++;
+      // }
       GRID.erase(it++);
       chipped++;
     }else{
+      // if(inGridRes(it->second,2.0)==1){
+      //   cout<<"keep"<<endl;
+      //   keep200++;
+      // }
       vrtxIdList.push_back(it->second.modulo);
       ++it;
+      if(inGridRes(it->second,2.0)==1) vrtx200++;
+      if(inGridRes(it->second,1.5)==1) vrtx150++;
+      if(inGridRes(it->second,1.0)==1) vrtx100++;
+      if(inGridRes(it->second,0.5)==1) vrtx050++;
     }
   }
+
   cout<<"Chipped "<<chipped<<" grid points."<<endl;
   cout<<"Grid points [2.0] "<<vrtx200<<" [1.5] "<<vrtx150<<" [1.0] "<<vrtx100<<" [0.5] "<<vrtx050<<"."<<endl;
   return(0);
@@ -1812,12 +1849,14 @@ void Grid::writeMif(vector<atom>& prot, vector<atom>& lig){
   }
   fprintf(fpNew,"#zip %d\n",zip);
   fprintf(fpNew,"#stepsize %4.2f\n",stepsize);
+  fprintf(fpNew,"#angThreshold %6.2f\n",angThresh);
   fprintf(fpNew,"#atom_probe_distance_threshold %7.4f\n",atmPbMaxDist);
   fprintf(fpNew,"#protein_grid_distance %7.4f to %7.4f\n",sqrt(minGridDist),sqrt(maxGridDist));
   fprintf(fpNew,"#grid_width %d\n",width);
   fprintf(fpNew,"#grid_height %d\n",height);
   fprintf(fpNew,"#gs %d %d %d %d\n",vrtx200,vrtx150,vrtx100,vrtx050);
   fprintf(fpNew,"#ss %d %d %d %d\n",ss[0],ss[1],ss[2],ss[3]);
+  fprintf(fpNew,"#ssm %d %d %d %d\n",ssm[0],ssm[1],ssm[2],ssm[3]);
 
   cout<<endl<< "Writing Mif File"<<endl;
   for(it=GRID.begin();it!=GRID.end();it++){
@@ -2097,8 +2136,9 @@ void getMif(map<int,vertex>& grid, vector<atom>& prot, vector<int>& vrtxList){
     if(m.p==1){ continue; }
     // if(m.bu<bul){ continue; }
     if(m.grid[0]==1 || m.grid[1]==1 || m.grid[2]==1 || m.grid[3]==1){
-  
+    
       if(printDetails==1){ cout<<endl<<"Vertex id: "<< m.id <<" "<<m.x<<" "<<m.y<<" "<<m.z<<endl; }
+
       int flag=0;
       for(int probe=0; probe<nbOfProbes; probe++){ //Iterate each probe
         float enrg_sum=0.00;
@@ -2114,6 +2154,11 @@ void getMif(map<int,vertex>& grid, vector<atom>& prot, vector<int>& vrtxList){
           m.nrgs[probe]=enrg_sum;
           if(enrg_sum<nrgT[probes[probe]] || (fabs(enrg_sum-nrgT[probes[probe]]))<0.001){
             m.ints[probe]=1;
+            for(int gi=0; gi<4; gi++){
+              if(m.grid[gi]==1){
+                ssm[gi]++;
+              }
+            }
             flag=1;            
           }
           if(printDetails==1){ cout<<m.grid[0]<<" "<<m.grid[1]<<" "<<m.grid[2]<<" "<<m.grid[3]<<" probe "<<probe<<" nrg "<< enrg_sum<<" int "<<m.ints[probe]<<endl; }
@@ -2165,7 +2210,7 @@ double calcNrg(vertex& vrtx, atom& atm, int pbId, int& count_atoms, float& close
       if(printDetails==1){ cout<<"Angle over threshold"<<endl; }
       return(energy);
     }else{
-      cout<<"Hbond Angle "<< angle <<" threshold "<<angThresh<<endl;
+      if(printDetails==1){ cout<<"Hbond Angle "<< angle <<" threshold "<<angThresh<<endl; }
     }
     if(dist<closest){
       closest=dist;

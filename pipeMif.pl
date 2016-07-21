@@ -1,4 +1,23 @@
 #!/usr/bin/perl
+
+#! pipeMIF is part of IsoMIF (See Below). It allows to batch large number of MIF jobs.
+
+#! IsoMIF is a program to identify molecular interaction field similarities between proteins
+#! Copyright (C) 2015 - Matthieu Chartier (under the supervision or Rafael Najmanovich)
+
+#! This program is free software: you can redistribute it and/or modify
+#! it under the terms of the GNU General Public License as published by
+#! the Free Software Foundation, either version 3 of the License, or
+#! (at your option) any later version.
+
+#! This program is distributed in the hope that it will be useful,
+#! but WITHOUT ANY WARRANTY; without even the implied warranty of
+#! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#! GNU General Public License for more details.
+
+#! You should have received a copy of the GNU General Public License
+#! along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 use strict;
 use warnings;
 # use Parallel::ForkManager; #Call the package to use for forks.
@@ -56,6 +75,51 @@ for(my $i=0; $i<=$#ARGV; $i++){
 &recur(0,"",0);
 
 &runCmds();
+
+sub storeParams{
+  my $p=0;
+  open IN, "<".$mifParamF or die "Can't open ".$mifParamF;
+  while(my $line=<IN>){
+    next if($line=~/^$/);
+    my @sub=split(/\s+/,$line);
+    $mifParam[$p][0]=$sub[0];
+    for(my $i=1; $i<@sub; $i++){
+      $mifParam[$p][1][$i-1]=$sub[$i];
+    }
+    $p++;
+  }
+  close IN;
+}
+
+sub storeCases{
+  open IN, "<".$mifJobsF or die "Cant open ".$mifJobsF;
+  while(my $line=<IN>){
+    if($line!~/^$/){
+      chomp($line);
+      push @cases, $mifPath." ".$line;
+    }
+  }
+  close IN;
+}
+
+sub recur{
+  my $level=$_[2];
+  $level++;
+  for(my $p=$_[0]; $p<@mifParam; $p++){
+    for(my $i=0; $i<@{$mifParam[$p][1]}; $i++){
+      my $cmd=$_[1]." ".$mifParam[$p][0]." ".$mifParam[$p][1][$i]; 
+      if($p==$#mifParam){
+        if($level==@mifParam){
+          foreach my $c (@cases){
+            push @cmds, $c.$cmd;
+          }
+        }
+      }else{
+        &recur($p+1,$cmd,$level);
+      }
+    }
+  }
+}
 
 sub runCmds{
   if($cmdMode eq "nrg"){
@@ -124,51 +188,6 @@ sub runCmds{
   }
 }
 
-sub storeCases{
-  open IN, "<".$mifJobsF or die "Cant open ".$mifJobsF;
-  while(my $line=<IN>){
-    if($line!~/^$/){
-      chomp($line);
-      push @cases, $mifPath." ".$line;
-    }
-  }
-  close IN;
-}
-
-sub recur{
-  my $level=$_[2];
-  $level++;
-  for(my $p=$_[0]; $p<@mifParam; $p++){
-    for(my $i=0; $i<@{$mifParam[$p][1]}; $i++){
-      my $cmd=$_[1]." ".$mifParam[$p][0]." ".$mifParam[$p][1][$i]; 
-      if($p==$#mifParam){
-        if($level==@mifParam){
-          foreach my $c (@cases){
-            push @cmds, $c.$cmd;
-          }
-        }
-      }else{
-        &recur($p+1,$cmd,$level);
-      }
-    }
-  }
-}
-
-sub storeParams{
-  my $p=0;
-  open IN, "<".$mifParamF or die "Can't open ".$mifParamF;
-  while(my $line=<IN>){
-    next if($line=~/^$/);
-    my @sub=split(/\s+/,$line);
-    $mifParam[$p][0]=$sub[0];
-    for(my $i=1; $i<@sub; $i++){
-      $mifParam[$p][1][$i-1]=$sub[$i];
-    }
-    $p++;
-  }
-  close IN;
-}
-
 sub areJobsDone{
   my $sys=$_[0];
   my $exitLoopR=0;
@@ -176,7 +195,6 @@ sub areJobsDone{
   my $exitLoopC=0;
   my $getout=0;
   my $time=0;
-  print "\n\nWaiting for jobs to terminate..";
   while(1){
     sleep 15;
     $time+=15;
@@ -184,7 +202,8 @@ sub areJobsDone{
     if($sys eq "nrg"){
       if($nbFiles!=0){
         my @nbb=glob $outDir."*.mif";
-        print "need $nbFiles, got ".scalar @nbb."\n";
+        my $percent=(scalar @nbb/$nbFiles)*100;
+        print "#! Calculated ".scalar @nbb." MIF(s) - ".$percent."% done.\n";
         if(scalar @nbb >= $nbFiles){
           $getout=1;
         }

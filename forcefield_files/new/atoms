@@ -1,0 +1,167 @@
+       ALA          N       n.am H 1
+       ALA         CA        c.3
+       ALA          C        c.2
+       ALA          O        o.2 C 0
+       ALA         CB        c.3
+       ARG          N       n.am H 1
+       ARG         CA        c.3
+       ARG          C        c.2
+       ARG          O        o.2 C 0
+       ARG         CB        c.3
+       ARG         CG        c.3
+       ARG         CD        c.3
+       ARG         NE      n.pl3 HE 1
+       ARG         CZ      c.cat
+       ARG        NH1      n.pl3 CZ 0
+       ARG        NH2      n.pl3 CZ 0
+       ASN          N       n.am H 1
+       ASN         CA        c.3
+       ASN          C        c.2
+       ASN          O        o.2 C 0
+       ASN         CB        c.3
+       ASN         CG        c.2
+       ASN        OD1        o.2 CG 0
+       ASN        ND2       n.am CG 0
+       ASP          N       n.am H 1
+       ASP         CA        c.3
+       ASP          C        c.2
+       ASP          O        o.2 C 0
+       ASP         CB        c.3
+       ASP         CG        c.2
+       ASP        OD1      o.co2 CG 0
+       ASP        OD2      o.co2 CG 0
+       CYS          N       n.am H 1
+       CYS         CA        c.3
+       CYS          C        c.2
+       CYS          O        o.2 C 0
+       CYS         CB        c.3
+       CYS         SG        s.3
+       GLN          N       n.am H 1
+       GLN         CA        c.3
+       GLN          C        c.2
+       GLN          O        o.2 C 0
+       GLN         CB        c.3
+       GLN         CG        c.3
+       GLN         CD        c.2
+       GLN        OE1        o.2 CD 0
+       GLN        NE2       n.am CD 0
+       GLU          N       n.am H 1
+       GLU         CA        c.3
+       GLU          C        c.2
+       GLU          O        o.2 C 0
+       GLU         CB        c.3
+       GLU         CG        c.3
+       GLU         CD        c.2
+       GLU        OE1      o.co2 CD 0
+       GLU        OE2      o.co2 CD 0
+       GLY          N       n.am H 1
+       GLY         CA        c.3
+       GLY          C        c.2
+       GLY          O        o.2 C 0
+       HIS          N       n.am H 1
+       HIS         CA        c.3
+       HIS          C        c.2
+       HIS          O        o.2 C 0
+       HIS         CB        c.3
+       HIS         CG       c.ar ND1 NE2 0 1
+       HIS        ND1      n.his CG CE1 0 2
+       HIS        CD2       c.ar ND1 NE2 0 1
+       HIS        CE1       c.ar ND1 NE2 0 1
+       HIS        NE2      n.his CE1 CD2 0 2
+       ILE          N       n.am H 1
+       ILE         CA        c.3
+       ILE          C        c.2
+       ILE          O        o.2 C 0
+       ILE         CB        c.3
+       ILE        CG1        c.3
+       ILE        CG2        c.3
+       ILE        CD1        c.3
+       LEU          N       n.am H 1
+       LEU         CA        c.3
+       LEU          C        c.2
+       LEU          O        o.2 C 0
+       LEU         CB        c.3
+       LEU         CG        c.3
+       LEU        CD1        c.3
+       LEU        CD2        c.3
+       LYS          N       n.am H 1
+       LYS         CA        c.3
+       LYS          C        c.2
+       LYS          O        o.2 C 0
+       LYS         CB        c.3
+       LYS         CG        c.3
+       LYS         CD        c.3
+       LYS         CE        c.3
+       LYS         NZ        n.4 CE 0
+       MET          N       n.am H 1
+       MET         CA        c.3
+       MET          C        c.2
+       MET          O        o.2 C 0
+       MET         CB        c.3
+       MET         CG        c.3
+       MET         SD        s.3
+       MET         CE        c.3
+       PHE          N       n.am H 1
+       PHE         CA        c.3
+       PHE          C        c.2
+       PHE          O        o.2 C 0
+       PHE         CB        c.3
+       PHE         CG       c.ar CD1 CD2 0 1
+       PHE        CD1       c.ar CG CD2 0 1
+       PHE        CD2       c.ar CG CD1 0 1
+       PHE        CE1       c.ar CG CD1 0 1
+       PHE        CE2       c.ar CG CD1 0 1
+       PHE         CZ       c.ar CG CD1 0 1
+       PRO          N        n.3
+       PRO         CA        c.3
+       PRO          C        c.2
+       PRO          O        o.2 C 0
+       PRO         CB        c.3
+       PRO         CG        c.3
+       PRO         CD        c.3
+       SER          N       n.am H 1
+       SER         CA        c.3
+       SER          C        c.2
+       SER          O        o.2 C 0
+       SER         CB        c.3
+       SER         OG        o.3 CB 0
+       THR          N       n.am H 1
+       THR         CA        c.3
+       THR          C        c.2
+       THR          O        o.2 C 0
+       THR         CB        c.3
+       THR        OG1        o.3 CB 0
+       THR        CG2        c.3
+       TRP          N       n.am H 1
+       TRP         CA        c.3
+       TRP          C        c.2
+       TRP          O        o.2 C 0
+       TRP         CB        c.3
+       TRP         CG       c.ar CD1 CD2 0 1
+       TRP        CD1       c.ar CG CD2 0 1
+       TRP        CD2       c.ar CG CD1 0 1
+       TRP        NE1       n.am CE2 CD1 0 2
+       TRP        CE2       c.ar CG CD1 0 1
+       TRP        CE3       c.ar CG CD1 0 1
+       TRP        CZ2       c.ar CG CD1 0 1
+       TRP        CZ3       c.ar CG CD1 0 1
+       TRP        CH2       c.ar CG CD1 0 1
+       TYR          N       n.am H 1
+       TYR         CA        c.3
+       TYR          C        c.2
+       TYR          O        o.2 C 0
+       TYR         CB        c.3
+       TYR         CG       c.ar CD1 CD2 0 1
+       TYR        CD1       c.ar CG CD2 0 1
+       TYR        CD2       c.ar CG CD1 0 1
+       TYR        CE1       c.ar CG CD1 0 1
+       TYR        CE2       c.ar CG CD1 0 1
+       TYR         CZ       c.ar CG CD1 0 1
+       TYR         OH        o.3 CZ 0
+       VAL          N       n.am H 1
+       VAL         CA        c.3
+       VAL          C        c.2
+       VAL          O        o.2 C 0
+       VAL         CB        c.3
+       VAL        CG1        c.3
+       VAL        CG2        c.3

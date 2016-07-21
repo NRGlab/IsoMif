@@ -1,4 +1,22 @@
-IsoMif - Readme
+IsoMIF README
+
+IsoMIF is a program to identify molecular interaction field similarities between proteins
+Copyright (C) 2015 - Matthieu Chartier (under the supervision or Rafael Najmanovich)
+Matthieu.Chartier@usherbrooke.ca, Rafael.Najmanovich@usherbrooke.ca
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 Matthieu Chartier, march 2015, Matthieu.Chartier@uSherbrooke.ca
 Developped at the Najmanovich Research Group bcb.med.usherbrooke.ca under supervision of Rafael Najmanovich Rafael.Najmanovich@uSherbrooke.ca
 University of Sherbrooke

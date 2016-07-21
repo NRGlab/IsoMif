@@ -1,3 +1,19 @@
+// IsoMIF is a program to identify molecular interaction field similarities between proteins
+// Copyright (C) 2015 - Matthieu Chartier (under the supervision or Rafael Najmanovich)
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include <sstream>
 #include <string.h>
 #include <stdlib.h>
@@ -11,6 +27,15 @@
 #include <fstream>
 #include <gsl/gsl_linalg.h>
 #include <map>
+
+// #ifdef _OPENMP
+// # include <omp.h>
+// // multi-processors
+// # define CHUNKSIZE 1
+// # define SCHEDULE dynamic
+// // #  define SCHEDULE static
+// # define NUM_THREADS 12
+// #endif
 
 using namespace std;
 
@@ -43,6 +68,7 @@ struct vertex {
   vector<float> nrg;
   vector<float> ang;
   vector<int> m;
+  vector<int> ol;
   int id;
 };
 
@@ -121,6 +147,7 @@ struct CliqueStruct{
   float cen_a[3];
   float cen_b[3];
   double det;
+  double detOri;
 };
 
 int *compsub = NULL;
@@ -132,6 +159,7 @@ float topT=-1.0;
 float topN=-1;
 int bkAll = 0;
 int nCliques=0;
+int nCliquesExplored=0;
 int maxCliques=200;
 vector<Clique> cliques;
 
@@ -141,12 +169,19 @@ int printDetails=0;
 string pairwiseF;
 string nrg_file1;
 string nrg_file2;
+char exePath[150];
 char cmdLine[550];
+char cmdArgs[550];
+int flagpp=0; //To store if cmdline is -pp or -p1 -p2
 char outbase[200];
 int commonInt=1;
 
+int skipDet=1;
 int pc=0;
 int wc=0;
+int ol=-1;
+float olDist=1.0;
+float olDistsq=olDist*olDist;
 int jttt=5;
 int jtt[20][20];
 int nb_of_probes=6;
@@ -189,6 +224,7 @@ string rnc2;
 int getrmsd=0;
 vector<pwRun> pw;
 FILE* fpout;
+stringstream matchFileOut;
 
 void getPairwise();
 void sortArray(int *&, int nn, bool*&);
@@ -200,15 +236,17 @@ void adjMat(vector<node>&, bool*&, int);
 void Extend(int* old,int ne,int ce, int cg, vector<node>&, bool*&, int);
 int open_file_ptr(FILE**, char*, int);
 float dist3d(float[], float[]);
+float dist3dnosqrt(float[], float[]);
 void clearStep(int);
 void printNodes();
 int read_commandline(int, char*[]);
+bool fexists(const char*);
 int createVrtxVec(string, vector<vertex>&, vector<atom>&, vector<int>&, vector<int>&, int&, vector<pseudoC>&, string, vector<atom>&);
 void createNodes(int, vector<node>&, int);
 void rem_spaces(char*);
 int get_info(string, string);
-double calcRot(vector<float>, vector<float>, float*, float*, gsl_matrix *);
-double SupSVD(gsl_matrix *);
+double calcRot(vector<float>, vector<float>, float*, float*, gsl_matrix *, double&);
+double SupSVD(gsl_matrix *, double&);
 double gsl_matrix_Det3D(gsl_matrix *);
 long long ConnID(int, int);
 void setJTT(int);

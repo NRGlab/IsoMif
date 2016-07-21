@@ -1,4 +1,23 @@
- #!/usr/bin/perl
+#!/usr/bin/perl
+
+#! pipeIsoMIF is part of IsoMIF (See Below). It allows to batch large number of IsoMIF jobs.
+
+#! IsoMIF is a program to identify molecular interaction field similarities between proteins
+#! Copyright (C) 2015 - Matthieu Chartier (under the supervision or Rafael Najmanovich)
+
+#! This program is free software: you can redistribute it and/or modify
+#! it under the terms of the GNU General Public License as published by
+#! the Free Software Foundation, either version 3 of the License, or
+#! (at your option) any later version.
+
+#! This program is distributed in the hope that it will be useful,
+#! but WITHOUT ANY WARRANTY; without even the implied warranty of
+#! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#! GNU General Public License for more details.
+
+#! You should have received a copy of the GNU General Public License
+#! along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 use strict;
 use warnings;
 #use Parallel::ForkManager; #Call the package to use for forks.
@@ -8,7 +27,7 @@ use warnings;
 #This program runs a batch of isoMif system calls on the jobs list with the isoMif Parameters
 
 #Default values
-my $mifPath="";
+my $isoMifPath="";
 my $mifParamF="";
 my $mifJobsF="";
 my $tag="pipeIsoMif";
@@ -24,11 +43,13 @@ my @cmds=();
 my $batch=6;
 my $paramString="";
 my $run="";
+my %groups=();
+my $cores=10;
 
 #Read command line
 for(my $i=0; $i<=$#ARGV; $i++){
   #print $ARGV[$i]."\n";
-  if($ARGV[$i] eq "-e"){ $mifPath=$ARGV[$i+1]; }
+  if($ARGV[$i] eq "-e"){ $isoMifPath=$ARGV[$i+1]; }
   if($ARGV[$i] eq "-p"){ $mifParamF=$ARGV[$i+1]; }
   if($ARGV[$i] eq "-j"){ $mifJobsF=$ARGV[$i+1]; }
   if($ARGV[$i] eq "-c"){ $cmdMode=$ARGV[$i+1]; }
@@ -44,7 +65,7 @@ for(my $i=0; $i<=$#ARGV; $i++){
     print "-e         <path to IsoMif program>\n";
     print "-p         <file with all the isoMif parameters>\n";
     print "-j         <file with the list of isoMif jobs>\n";
-    print "-c         <cmd mode [nrg (batch qsub on nrg), print (print cmds only), local (run locally) use -b for nb of forks]>\n";
+    print "-c         <cmd mode [nrg (batch qsub on nrg), print (print cmds only), local (run locally)]>\n";
     print "-b         <Nb of cmds per job file / forks if local>\n";
     print "-sleep     <sleep>\n";
     print "-t         <tag of this job batch>\n";
@@ -68,6 +89,7 @@ for(my $i=0; $i<=$#ARGV; $i++){
 
 sub storeCases{
   if($cmdMode eq "ht" || $cmdMode eq "print"){
+    my $group="";
     open IN, "<".$mifJobsF or die "Cant open ".$mifJobsF;
     while(my $line=<IN>){
       chomp($line);
@@ -75,7 +97,19 @@ sub storeCases{
       if($line=~/^#param/){
         $line=~s/^#param\s+//;
         $paramString=$line;
-      }else{ push @cmds, $line; }
+      }elsif($line=~/^#group/){
+        $line=~s/#group\s+//;
+        $group=$line;
+      }elsif($line=~/^#cores/){
+        $line=~s/#cores\s+//;
+        $cores=$line;
+      }else{
+        if($group eq ""){
+          push @cmds, $line;
+        }else{
+          push @{$groups{$group}}, $line;
+        }
+      }
     }
     close IN;  
   }else{
@@ -83,7 +117,7 @@ sub storeCases{
     while(my $line=<IN>){
       if($line!~/^$/){
         chomp($line);
-        push @cases, $mifPath." ".$line;
+        push @cases, $isoMifPath." ".$line;
       }
     }
     close IN;      
@@ -91,6 +125,9 @@ sub storeCases{
 }
 
 sub runCmds{
+
+  my $nb_gr=scalar keys %groups;
+
   if($cmdMode eq "nrg"){
     my $filenb=0;
     my $count=0;
@@ -119,7 +156,7 @@ sub runCmds{
       # print "qsub $file\n";
     }
     &areJobsDone("nrg",$tag);
-  }elsif($cmdMode eq "ht"){
+  }elsif($cmdMode eq "ht" && $nb_gr<1){
     my $filenb=0;
     my $count=0;
     system("mkdir ".$jobsDir."/ht/") unless(-d $jobsDir."/ht/");
@@ -127,7 +164,7 @@ sub runCmds{
     system("rm ".$jobsDir."/*");
     system("rm ".$jobsDir."/ht/*");
     open OUT, ">".$jobsDir.$filenb.".pbs" or die "cant open".$jobsDir.$filenb.".pbs";
-    print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n".$mifPath." -pp ".$jobsDir."ht/".$filenb.$run." ".$paramString;
+    print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n".$isoMifPath." -pp ".$jobsDir."ht/".$filenb.$run." ".$paramString;
     open OUTHT, ">".$jobsDir."ht/".$filenb.$run or die "cant open".$jobsDir."ht/".$filenb;
     for(my $i=0; $i<@cmds; $i++){
       if($count==$batch){
@@ -137,7 +174,7 @@ sub runCmds{
         system("qsub ".$jobsDir.$filenb.".pbs -o /dev/null -e /dev/null");
         $filenb++;
         open OUT, ">".$jobsDir.$filenb.".pbs" or die "cant open".$jobsDir.$filenb.".pbs";
-        print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n".$mifPath." -pp ".$jobsDir."ht/".$filenb.$run." ".$paramString;
+        print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n".$isoMifPath." -pp ".$jobsDir."ht/".$filenb.$run." ".$paramString;
         open OUTHT, ">".$jobsDir."ht/".$filenb.$run or die "cant open".$jobsDir."ht/".$filenb;
       }
       print OUTHT "$cmds[$i]";
@@ -149,6 +186,49 @@ sub runCmds{
     # print "qsub ".$jobsDir.$filenb.".pbs -o /dev/null -e /dev/null\n";
     system("qsub ".$jobsDir.$filenb.".pbs -o /dev/null -e /dev/null");
 
+    &areJobsDone("ht",$tag);
+  }elsif($cmdMode eq "ht" && $nb_gr>0){
+    system("mkdir ".$jobsDir."/ht/") unless(-d $jobsDir."/ht/");
+    system("rm ".$jobsDir."/ht/*");
+
+    print "Nb of groups: ".$nb_gr."\n";
+    my $batch=sprintf("%d",$nb_gr/$cores);
+    $batch=1 if($batch==0);
+    print "cores: $cores\n";
+    print "batch: $batch\n";
+
+    foreach my $k (keys %groups){
+      open OUTHT, ">".$jobsDir."ht/".$k or die "cant open".$jobsDir."ht/".$k;
+      my $tmp=scalar @{$groups{$k}};
+      # print "group $k has ".$tmp." targets left\n";
+      for(my $i=0; $i<@{$groups{$k}}; $i++){
+        print OUTHT "$groups{$k}[$i]";
+        print OUTHT "\n" unless($i==$#{$groups{$k}});
+      }
+      close OUTHT;
+    }
+
+    system("mkdir ".$jobsDir) unless(-d $jobsDir);
+    system("rm ".$jobsDir."/*");
+    my $filenb=0;
+    my $count=0;
+    open OUT, ">".$jobsDir.$filenb.".pbs" or die "cant open".$jobsDir.$filenb.".pbs";
+    print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n";
+    foreach my $pp (glob $jobsDir."ht/*"){
+      if($count==$batch){
+        $count=0;
+        close OUT;
+        system("qsub ".$jobsDir.$filenb.".pbs -o /dev/null -e /dev/null");
+        $filenb++;
+        open OUT, ">".$jobsDir.$filenb.".pbs" or die "cant open".$jobsDir.$filenb.".pbs";
+        print OUT "#!/bin/sh\n#PBS -l nodes=1:ppn=1\n#PBS -N ".$tag.$filenb."\n";
+      }
+      # print $count." $pp\n";
+      print OUT $isoMifPath." -pp ".$pp." ".$paramString."\n";
+      $count++;
+    }
+    close OUT;
+    system("qsub ".$jobsDir.$filenb.".pbs -o /dev/null -e /dev/null");
     &areJobsDone("ht",$tag);
   }elsif($cmdMode eq "print"){
     print "printing\n";

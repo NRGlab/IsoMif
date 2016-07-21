@@ -1,0 +1,20 @@
+                                      Name   Pseudo Hbdon Hbacc Aroma Chrgd Hydro
+                                carbon_sp2      c.2     0     0     0     0     0
+                                carbon_sp3      c.3     0     0     0     0     1
+                           carbon_aromatic     c.ar     0     0     1     0     1
+  carbocation_(c+)_only_in_guadinium_group    c.cat     0     0     0     1     0
+                              nitrogen_sp3      n.3     0     0     0     0     0
+           nitrogen_sp3_positively_charged      n.4     1     0     0     1     0
+                            nitrogen_amide     n.am     1     0     0     0     0
+                     nitrogen_in_imidazole    n.his     1     1     0     1     0
+                  nitrogen_trigonal_planar    n.pl3     1     0     0     0     0
+                                oxygen_sp2      o.2     0     1     0     0     0
+                                oxygen_sp3      o.3     1     1     0     0     0
+oxygen_in_carboxylate_and_phosphate_groups    o.co2     0     1     0     1     0
+                                sulfur_sp3      s.3     0     0     0     0     1
+                             pb_hydrphobic      hyd     0     0     0     0     1
+                               pb_aromatic      arm     0     0     1     0     0
+                                 pb_donnor      don     1     0     0     0     0
+                               pb_acceptor      acc     0     1     0     0     0
+                                    pb_pos      pos     0     0     0     1     0
+                                    pb_neg      neg     0     0     0     1     0
